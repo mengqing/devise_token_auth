@@ -330,8 +330,7 @@ class DeviseTokenAuth::PasswordsControllerTest < ActionController::TestCase
           DeviseTokenAuth.default_password_reset_url = @redirect_url
 
           post :create,
-               params: { email: @resource.email,
-                         redirect_url: @redirect_url }
+               params: { email: @resource.email }
 
           @mail = ActionMailer::Base.deliveries.last
           @resource.reload
