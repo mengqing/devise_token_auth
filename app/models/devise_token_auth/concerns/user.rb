@@ -44,6 +44,10 @@ module DeviseTokenAuth::Concerns::User
     def email_changed?; false; end
     def will_save_change_to_email?; false; end
 
+    if DeviseTokenAuth.send_confirmation_email && devise_modules.include?(:confirmable)
+      include DeviseTokenAuth::Concerns::ConfirmableSupport
+    end
+
     def password_required?
       return false unless provider == 'email'
       super
@@ -134,17 +138,17 @@ module DeviseTokenAuth::Concerns::User
   def token_can_be_reused?(token, client)
     # ghetto HashWithIndifferentAccess
     updated_at = tokens[client]['updated_at'] || tokens[client][:updated_at]
-    last_token = tokens[client]['last_token'] || tokens[client][:last_token]
+    last_token_hash = tokens[client]['last_token'] || tokens[client][:last_token]
 
     return true if (
       # ensure that the last token and its creation time exist
-      updated_at && last_token &&
+      updated_at && last_token_hash &&
 
       # ensure that previous token falls within the batch buffer throttle time of the last request
       updated_at.to_time > Time.zone.now - DeviseTokenAuth.batch_request_buffer_throttle &&
 
       # ensure that the token is valid
-      DeviseTokenAuth::TokenFactory.valid_token_hash?(last_token)
+      DeviseTokenAuth::TokenFactory.token_hash_is_token?(last_token_hash, token)
     )
   end
 
@@ -155,7 +159,7 @@ module DeviseTokenAuth::Concerns::User
     token = create_token(
       client: client,
       last_token: tokens.fetch(client, {})['token'],
-      updated_at: now
+      updated_at: now.to_s(:rfc822)
     )
 
     update_auth_header(token.token, token.client)
@@ -191,7 +195,7 @@ module DeviseTokenAuth::Concerns::User
   end
 
   def extend_batch_buffer(token, client)
-    tokens[client]['updated_at'] = Time.zone.now
+    tokens[client]['updated_at'] = Time.zone.now.to_s(:rfc822)
     update_auth_header(token, client)
   end
 
@@ -215,7 +219,7 @@ module DeviseTokenAuth::Concerns::User
   end
 
   def should_remove_tokens_after_password_reset?
-    if Rails::VERSION::MAJOR <= 5
+    if Rails::VERSION::MAJOR <= 5 ||defined?('Mongoid')
       encrypted_password_changed? &&
         DeviseTokenAuth.remove_tokens_after_password_reset
     else

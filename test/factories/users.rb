@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :user do
-    email { Faker::Internet.safe_email }
+    email { Faker::Internet.unique.safe_email }
     password { Faker::Internet.password }
     provider { 'email' }
 
@@ -36,5 +36,6 @@ FactoryBot.define do
     factory :mang_user, class: 'Mang'
     factory :only_email_user, class: 'OnlyEmailUser'
     factory :scoped_user, class: 'ScopedUser'
+    factory :confirmable_user, class: 'ConfirmableUser'
   end
 end

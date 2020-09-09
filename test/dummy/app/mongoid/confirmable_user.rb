@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class <%= user_class %>
+class ConfirmableUser
   include Mongoid::Document
   include Mongoid::Timestamps
   include Mongoid::Locker
@@ -10,6 +10,11 @@ class <%= user_class %>
 
   locker locked_at_field: :locker_locked_at,
          locked_until_field: :locker_locked_until
+
+  ## User Info
+  field :name,      type: String
+  field :nickname,  type: String
+  field :image,     type: String
 
   ## Database authenticatable
   field :email,              type: String, default: ''
@@ -30,11 +35,6 @@ class <%= user_class %>
   field :confirmation_sent_at, type: Time
   field :unconfirmed_email,    type: String # Only if using reconfirmable
 
-  ## Lockable
-  # field :failed_attempts, type: Integer, default: 0 # Only if lock strategy is :failed_attempts
-  # field :unlock_token,    type: String # Only if unlock strategy is :email or :both
-  # field :locked_at,       type: Time
-
   ## Required
   field :provider, type: String
   field :uid,      type: String, default: ''
@@ -42,15 +42,11 @@ class <%= user_class %>
   ## Tokens
   field :tokens, type: Hash, default: {}
 
-  # Include default devise modules. Others available are:
-  # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
+  # Include default devise modules.
   devise :database_authenticatable, :registerable,
-         :recoverable, :rememberable, :validatable
+         :recoverable, :rememberable, :trackable,
+         :validatable, :confirmable
+  DeviseTokenAuth.send_confirmation_email = true
   include DeviseTokenAuth::Concerns::User
-
-  index({ email: 1 }, { name: 'email_index', unique: true, background: true })
-  index({ reset_password_token: 1 }, { name: 'reset_password_token_index', unique: true, sparse: true, background: true })
-  index({ confirmation_token: 1 }, { name: 'confirmation_token_index', unique: true, sparse: true, background: true })
-  index({ uid: 1, provider: 1}, { name: 'uid_provider_index', unique: true, background: true })
-  # index({ unlock_token: 1 }, { name: 'unlock_token_index', unique: true, sparse: true, background: true })
+  DeviseTokenAuth.send_confirmation_email = false
 end

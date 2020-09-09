@@ -1,7 +1,7 @@
-class DeviseTokenAuthCreate<%= user_class.pluralize.gsub("::","") %> < ActiveRecord::Migration<%= "[#{Rails::VERSION::STRING[0..2]}]" if Rails::VERSION::MAJOR > 4 %>
+class DeviseTokenAuthCreateConfirmableUsers < ActiveRecord::Migration[5.2]
   def change
-    <% table_name = @user_class.pluralize.gsub("::","").underscore %>
-    create_table(:<%= table_name %><%= primary_key_type %>) do |t|
+    
+    create_table(:confirmable_users) do |t|
       ## Required
       t.string :provider, :null => false, :default => "email"
       t.string :uid, :null => false, :default => ""
@@ -35,15 +35,15 @@ class DeviseTokenAuthCreate<%= user_class.pluralize.gsub("::","") %> < ActiveRec
       t.string :email
 
       ## Tokens
-      <%= json_supported_database? ? 't.json :tokens' : 't.text :tokens' %>
+      t.text :tokens
 
       t.timestamps
     end
 
-    add_index :<%= table_name %>, :email,                unique: true
-    add_index :<%= table_name %>, [:uid, :provider],     unique: true
-    add_index :<%= table_name %>, :reset_password_token, unique: true
-    add_index :<%= table_name %>, :confirmation_token,   unique: true
-    # add_index :<%= table_name %>, :unlock_token,         unique: true
+    add_index :confirmable_users, :email,                unique: true
+    add_index :confirmable_users, [:uid, :provider],     unique: true
+    add_index :confirmable_users, :reset_password_token, unique: true
+    add_index :confirmable_users, :confirmation_token,   unique: true
+    # add_index :confirmable_users, :unlock_token,       unique: true
   end
 end

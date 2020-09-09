@@ -17,7 +17,8 @@ Check #75 if you have any problem or doubt.
 Below are some generic examples which may assist in helping you devise (pun intended) your own tests:
 
 ```ruby
-# I've called it authentication_test_spec.rb and placed it in the spec/requests folder
+# spec/requests/authentication_test_spec.rb
+
 require 'rails_helper'
 include ActionController::RespondWith
 
@@ -46,11 +47,6 @@ describe 'Whether access is ocurring properly', type: :request do
     it 'gives you a status 200 on signing in ' do
       login
       expect(response.status).to eq(200)
-    end
-
-    it 'gives you an authentication code if you are an existing user and you satisfy the password' do
-      login
-      expect(response.has_header?('access-token')).to eq(true)
     end
 
     it 'first get a token, then access a restricted page' do
@@ -117,7 +113,7 @@ describe 'Whether access is ocurring properly', type: :request do
       'client' => client,
       'uid' => uid,
       'expiry' => expiry,
-      'token_type' => token_type
+      'token-type' => token_type
     }
     auth_params
   end
